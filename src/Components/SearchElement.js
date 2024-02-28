@@ -1,18 +1,28 @@
-import React,{useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import TrendingSlider from './TrendingSlider';
 import { useParams, Link } from 'react-router-dom';
 
 const SearchElement = () => {
     const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false)
     const { searchTerm } = useParams();
+
+    
 
     useEffect(() => {
         const fetchData = async () => {
-            const api = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${searchTerm}`);
-            const result = await api.json();
-            console.log(result);
-            setData(result.meals)
+            setLoading(true)
+            try {
+                const api = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${searchTerm}`);
+                const result = await api.json();
+                console.log(result, "result");
+                setData(result.meals || [])
+                setLoading(false)
+            } catch (error) {
+                throw Error("No recipe found")
+            }
+
         }
 
         fetchData()
@@ -29,7 +39,7 @@ const SearchElement = () => {
                 gridGap: '1rem',
                 marginTop: '2rem'
             }}>
-                {data.map((mealCat, i) => {
+                {loading ? <div style={{textAlign:"center"}} >Loading...</div> : (data?.map((mealCat, i) => {
                     return (
                         <div key={i} style={{ textAlign: 'center' }}>
                             <Link className='link' to={`/${mealCat.idMeal}`} >
@@ -42,7 +52,9 @@ const SearchElement = () => {
                         </div>
                     )
 
-                })}
+                }))
+                }
+                {!loading && data.length === 0 &&  <div style={{textAlign:"center"}}>No Recipe Found</div>}
             </div>
             <TrendingSlider />
         </div>
